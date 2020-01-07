@@ -1,6 +1,6 @@
 INSTRUCTIONS.md
-lib
-components
+/lib
+/components
 # Logs
 logs
 *.log
