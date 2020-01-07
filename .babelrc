@@ -1,0 +1,12 @@
+{
+  "plugins": [
+    "transform-function-bind"
+  ],
+  "presets": [
+    ["env", {
+      "targets": {
+        "node": "current"
+      }
+    }]
+  ]
+}
