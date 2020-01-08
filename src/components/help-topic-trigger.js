@@ -5,13 +5,13 @@
 import {LitElement, html, css} from 'lit-element'
 
 
-/** Help Scout Beacon trigger.
+/** Help topic (Help Scout Beacon) trigger.
  * A trigger element that responds to `click` events by opening and
  * closing the Help Scout Beacon. If the `topic` property is defined,
  * it opens the beacon with the article indicated by the topic;
  * otherwise, it opens the beacon with the default help context.
  */
-class HelpScoutTrigger extends LitElement {
+class HelpTopicTrigger extends LitElement {
 
   constructor() {
     super()
@@ -34,17 +34,17 @@ class HelpScoutTrigger extends LitElement {
     }
   }
 
-  get opened() { return this == HelpScoutTrigger._openTrigger }
+  get opened() { return this == HelpTopicTrigger._openTrigger }
   set opened(val) {
-    let oldVal = this == HelpScoutTrigger._openTrigger
+    let oldVal = this == HelpTopicTrigger._openTrigger
     val = !!val
     if (oldVal != val) {
       if (oldVal) { // beacon is open, we're the trigger
-        HelpScoutTrigger._openTrigger = undefined
+        HelpTopicTrigger._openTrigger = undefined
       }
       if (val) {
-        if (HelpScoutTrigger._openTrigger) HelpScoutTrigger._openTrigger.closeBeacon()
-        HelpScoutTrigger._openTrigger = this
+        if (HelpTopicTrigger._openTrigger) HelpTopicTrigger._openTrigger.closeBeacon()
+        HelpTopicTrigger._openTrigger = this
       }
       this.classList.toggle('open', val)
       this.requestUpdate('opened', oldVal)
@@ -53,10 +53,10 @@ class HelpScoutTrigger extends LitElement {
 
   connectedCallback() {
     super.connectedCallback()
-    if (!HelpScoutTrigger._initialized) {
-      HelpScoutTrigger._beacon = document.querySelector('#beacon-container .BeaconContainer')
-      document.addEventListener('click', ::HelpScoutTrigger._contextClickListener, {capture: true})
-      HelpScoutTrigger._initialized = true
+    if (!HelpTopicTrigger._initialized) {
+      HelpTopicTrigger._beacon = document.querySelector('#beacon-container .BeaconContainer')
+      document.addEventListener('click', ::HelpTopicTrigger._contextClickListener, {capture: true})
+      HelpTopicTrigger._initialized = true
     }
     if (!this._initialized) {
       this.addEventListener('click', this._boundClickListener)
@@ -91,7 +91,7 @@ class HelpScoutTrigger extends LitElement {
   }
 
   closeBeacon() {
-    if (HelpScoutTrigger._openTrigger === this) Beacon('close')
+    if (HelpTopicTrigger._openTrigger === this) Beacon('close')
   }
 
   render() {
@@ -119,6 +119,6 @@ class HelpScoutTrigger extends LitElement {
 
 }
 
-customElements.define('help-scout-trigger', HelpScoutTrigger)
+customElements.define('help-topic-trigger', HelpTopicTrigger)
 
-export {HelpScoutTrigger as default}
+export {HelpTopicTrigger as default}
