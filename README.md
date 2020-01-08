@@ -52,9 +52,9 @@ the `beaconKey` configuration parameter to use this.
 
     <%- render('helpscout') %>
 
-## The <help-topic-trigger> element
+## The \\&lt;help-topic-trigger> element
 
-The `help-topic-trigger` element renders an interactive marker that,
+The `<help-topic-trigger>` element renders an interactive marker that,
 when clicked, displays the Help Scout Beacon. The element content
 provides the marker. The `topic` property may be used to specify the
 help topic to display in the beacon; if no topic is specified, the
@@ -94,6 +94,24 @@ This code fragment gives the general idea.
       let topic = topics.find(topic => (topic.slug == slug))
       return topic && topic.id
     }
+
+### Defining the element
+
+The `<help-topic-trigger>` element can be defined in page setup as
+follows:
+
+    <script src="/node_modules/nxus-help-topics/components/help-topic-trigger.js"></script>
+
+## Possible issues, loose ends
+
+The `<help-scout-trigger>` element uses ES6 module syntax. This seems to
+work with webpack and Chrome, but it's not entirely clear whether this
+approach is robust with other possible bundling strategies and browsers.
+
+The `package.json` provides a `compile-elements` script that transpiles
+the source file for the element. Right now, all it does is remove the
+double-colon binding syntax (`::`). However, it could perform more
+extensive transformations if the need for them became apparent.
 
 
 ## API
