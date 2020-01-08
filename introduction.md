@@ -6,13 +6,13 @@ In general terms, it offers two ways of retrieving help content (which
 Help Scout refers to as _articles_):
 -   **Help Beacons** - You can add trigger elements to your web page to
     display help topics in the Help Scout Beacon (a modal help dialog).
-    In this case, you identify the help topic, and the Beacon logic
-    handles its display.
+    You identify the help topic, and the Beacon logic handles its
+    display.
 -   **Topic Details** - You can retrieve the detailed data for a help
-    topic. In this case, you're responsible for whatever user you want
-    to make of the data. (Help topics can provide a handy place to
-    stash material that isn't strictly a help topic, but benefits from
-    being easily accessible for editing; welcome messages, for example.)
+    topic. You're responsible for whatever use you want to make of the
+    data. (Help topics can provide a handy place to stash material that
+    isn't strictly a help topic, but benefits from being easily
+    accessible for editing; welcome messages, for example.)
 
 Here's a bit of background on how Help Scout organizes help content:
 -   **Article** - As noted above, help content is referred to as an
@@ -39,9 +39,9 @@ The Help Scout Beacon Builder provides embed code that defines the
 `Beacon` object in the context of a web page.
 
 Alternatively, the Help Topics module defines a `helpscout` partial that
-you can render to provide the embed code. It goes at the end of the page
-`<body>...</body>` element. You'll need to define the `beaconKey`
-configuration parameter to use this.
+you can render to provide the embed code. Place it at the end of the
+contents of the page `<body>...</body>` element. You'll need to define
+the `beaconKey` configuration parameter to use this.
 
     <%- render('helpscout') %>
 
@@ -85,7 +85,7 @@ This code fragment gives the general idea.
     let topics = await helpTopics.getHelpTopics()
 
     function getHelpTopicId(slug) {
-      let topic = topics.find(topic => (topic.slug == slug
+      let topic = topics.find(topic => (topic.slug == slug))
       return topic && topic.id
     }
 
