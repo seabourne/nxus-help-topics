@@ -7,12 +7,12 @@
     "preversion": "npm test",
     "postversion": "npm run build-docs && git push && git push --tags",
     "test": "jest --runInBand --forceExit",
-    "compile": "rm -rf lib/ && npm run compile-server && npm run compile-elements && cp -r src/templates lib/",
+    "compile": "rm -rf lib/ components/ && npm run compile-server && npm run compile-elements && cp -r src/templates lib/",
     "compile-server": "babel src --out-dir lib --ignore src/components/,src/test/",
     "compile-elements": "babel --no-babelrc --plugins=transform-function-bind src/components --out-dir components",
     "prepublish": "npm run compile",
     "prepare": "npm run compile",
-    "build-docs": "export NAME=`npm view . name`; export VERSION=`npm view . version`; documentation readme ./src/*.js --name $NAME --project-version $VERSION --readme-file ./README.md -s $NAME",
+    "build-docs": "NAME=\"${NAME:-$npm_package_name}\" VERSION=\"${VERSION:-$npm_package_version}\" && documentation readme ./src/index.js --name $NAME --project-version $VERSION --readme-file ./README.md -s $NAME --config documentation.yml",
     "publish-docs": "npm run build-docs && git add ./README.md && git commit -m 'Updated README API Docs' && git push"
   },
   "repository": {

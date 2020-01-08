@@ -6,6 +6,7 @@
 docs
 documentation.yml
 introduction.md
+jest.config.js
 src
 test
 *.tgz
