@@ -6,6 +6,7 @@ import {pick} from 'lodash'
 import request from 'request-promise-native'
 
 import {application, NxusModule} from 'nxus-core'
+import {templater} from 'nxus-templater'
 
 function splitURL(str) {
   let url = new URL(str),
@@ -18,19 +19,24 @@ function splitURL(str) {
 /** Help Topics (interface to Help Scout).
  *
  * It accepts these configuration parameters:
- * *   `apiKey` - The HelpScout Docs API key used for authentication
- *     (see https://developer.helpscout.com/docs-api/).
+ * *   `apiKey` - The Help Scout Docs API key used for authentication
+ *     (see the Help Scout documentation for the
+ *     [Docs API Key](https://developer.helpscout.com/docs-api/#your-api-key)).
  * *   `collectionId` - The id of the collection containing the help
  *     topic articles. It looks like the easiest place to find the
  *     collection id is in the URL for the Help Scout document library
  *     landing page (for example,
  *     `https://secure.helpscout.net/docs/5d8a195e2c7d3a7e9ae18b54/`).
+ * *   `beaconKey` - The Help Scout Beacon key. (You can find it in the
+ *     embed code provided by the Help Scout Beacon Builder; it's the
+ *     second parameter in the `Beacon('init', key)` call.) Define this
+ *     parameter if you're using the `helpscout` partial to define the
+ *     Beacon embed code.
  * *   `listURL` - the Docs API List Articles endpoint and parameters
  *     (default `https://docsapi.helpscout.net/v1/collections/:id/articles?status=published&pageSize=100`)
  * *   `getURL` - the Docs API Get Article endpoint and parameters
  *     (default `https://docsapi.helpscout.net/v1/articles/:id`)
  *
- * @private
  */
 class HelpTopics extends NxusModule {
   constructor() {
@@ -38,6 +44,12 @@ class HelpTopics extends NxusModule {
 
     this._helpTopics = []
     this._helpTopicIndex = {}
+
+    templater.templateDir(__dirname+"/templates")
+
+    templater.on('renderContext', (opts) => {
+      return {beaconKey: this.config.beaconKey}
+    })
 
     application.once('startup', async () => {
       await this._initializeHelpTopics()
@@ -49,13 +61,14 @@ class HelpTopics extends NxusModule {
       listURL: "https://docsapi.helpscout.net/v1/collections/:id/articles?status=published&pageSize=100",
       getURL: "https://docsapi.helpscout.net/v1/articles/:id",
       collectionId: "",
-      apiKey: "" }
+      apiKey: "",
+      beaconKey: "" }
   }
 
   /** Gets available help topics.
    *
    * The returned help topic specifications include these properties:
-   * *   `id` - article identifier used by the Beacon
+   * *   `id` - article id
    * *   `slug` - article slug
    * *   `name` - article name
    *
@@ -67,6 +80,14 @@ class HelpTopics extends NxusModule {
   }
 
   /** Gets help topic details.
+   *
+   * The returned help topic details object includes these properties:
+   * *   `id` - article id
+   * *   `slug` - article slug
+   * *   `name` - article name
+   * *   `text` - article text; may include HTML markup
+   * (There are additional properties; see the Help Scout documentation
+   * for the [Article Object](https://developer.helpscout.com/docs-api/objects/article/).
    *
    * @param {string} slug - article slug
    * @return {Object} help topic details
