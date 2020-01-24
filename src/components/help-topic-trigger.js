@@ -95,17 +95,25 @@ class HelpTopicTrigger extends LitElement {
   }
 
   render() {
-    return html`<slot></slot>`
+    return html`<slot><span>&#xf05a;</span></slot>`
   }
 
   static get styles() {
     return css`
       :host {
+        --help-topic-trigger-font-family: 'FontAwesome';
+        --help-topic-trigger-font-size: 75%;
+        --help-topic-trigger-line-height: 1;
+        --help-topic-trigger-font: var(--help-topic-trigger-font-size)/var(--help-topic-trigger-line-height) var(--help-topic-trigger-font-family);
+        --help-topic-trigger-color: inherit;
+        --help-topic-trigger-color-open: red;
         display: inline;
         cursor: pointer;
+        font: var(--help-topic-trigger-font);
+        color: var(help-topic-trigger-color);
       }
       :host(.open) {
-        color: red;
+        color: var(--help-topic-trigger-color-open);
       }
     `
   }

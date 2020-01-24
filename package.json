@@ -36,6 +36,8 @@
     "babel-preset-env": "^1.6.1",
     "documentation": "^4.0.0-beta",
     "lit-element": "^2.2.1",
+    "nxus-core": "^4.1.4-1",
+    "nxus-templater": "^4.1.0",
     "nxus-tester-jest": "^4.0.9",
     "sinon": "^1.17.7",
     "url-pattern": "^1.0.3"

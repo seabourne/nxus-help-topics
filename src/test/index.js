@@ -68,7 +68,7 @@ beforeAll(() => {
 })
 
 describe("HelpTopics", () => {
-  let help, topics
+  let help, index
 
   describe("Load", () => {
     it("should not be null", () => {
@@ -89,11 +89,14 @@ describe("HelpTopics", () => {
       await application.emit('init')
       await application.emit('load')
       await application.emit('startup')
-      topics = await help.getHelpTopics()
-      expect(topics).toBeInstanceOf(Array)
-      expect(topics.length).toEqual(Object.keys(helpScoutArticles).length)
-      for (let topic of topics)
+      index = await help.getHelpTopicIndex()
+      expect(index).toBeInstanceOf(Object)
+      expect(Object.keys(index).length).toEqual(Object.keys(helpScoutArticles).length)
+      for (let slug in index) {
+        let topic = index[slug]
         expect(topic).toMatchObject(desiredTopic)
+        expect(topic.slug).toMatch(slug)
+      }
     }, 60000)
 
     it("should have details for all help topics", async () => {
@@ -102,9 +105,10 @@ describe("HelpTopics", () => {
           slug: expect.any(String),
           name: expect.any(String),
           text: expect.any(String) }
-      for (let topic of topics) {
-        let detail = await help.getHelpTopicDetail(topic.slug)
+      for (let slug in index) {
+        let detail = await help.getHelpTopicDetail(slug)
         expect(detail).toMatchObject(desiredDetail)
+        expect(detail.slug).toMatch(slug)
       }
     }, 60000)
 

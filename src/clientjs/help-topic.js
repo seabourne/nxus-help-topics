@@ -9,17 +9,10 @@ class HelpTopic extends React.Component {
   }
 
   render() {
-    let key = this.context[this.props.topic]
-    return key ? (<help-topic-trigger topic={key}></help-topic-trigger>) : null
+    let info = this.context[this.props.topic]
+    return info ? (<help-topic-trigger topic={info.id}>{this.props.children}</help-topic-trigger>) : null
   }
 }
 HelpTopic.contextType = HelpTopicContext
-
-const roots = document.querySelectorAll('.help-topic')
-if (roots.length) {
-  roots.forEach((f) => {
-    ReactDOM.render(<FuelGauge data={JSON.parse(f.getAttribute('data-data'))} />, f)
-  })
-}
 
 export { HelpTopic as default, HelpTopicContext }

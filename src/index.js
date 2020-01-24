@@ -17,38 +17,22 @@ function splitURL(str) {
 
 
 /** Help Topics (interface to Help Scout).
- *
- * It accepts these configuration parameters:
- * *   `apiKey` - The Help Scout Docs API key used for authentication
- *     (see the Help Scout documentation for the
- *     [Docs API Key](https://developer.helpscout.com/docs-api/#your-api-key)).
- * *   `collectionId` - The id of the collection containing the help
- *     topic articles. It looks like the easiest place to find the
- *     collection id is in the URL for the Help Scout document library
- *     landing page (for example,
- *     `https://secure.helpscout.net/docs/5d8a195e2c7d3a7e9ae18b54/`).
- * *   `beaconKey` - The Help Scout Beacon key. (You can find it in the
- *     embed code provided by the Help Scout Beacon Builder; it's the
- *     second parameter in the `Beacon('init', key)` call.) Define this
- *     parameter if you're using the `helpscout` partial to define the
- *     Beacon embed code.
- * *   `listURL` - the Docs API List Articles endpoint and parameters
- *     (default `https://docsapi.helpscout.net/v1/collections/:id/articles?status=published&pageSize=100`)
- * *   `getURL` - the Docs API Get Article endpoint and parameters
- *     (default `https://docsapi.helpscout.net/v1/articles/:id`)
- *
+ * See the introduction for a list of configuration parameters.
  */
 class HelpTopics extends NxusModule {
   constructor() {
     super()
 
-    this._helpTopics = []
-    this._helpTopicIndex = {}
+    this._helpTopics = {}
 
     templater.templateDir(__dirname+"/templates")
 
     templater.on('renderContext', (opts) => {
-      return {beaconKey: this.config.beaconKey}
+      return {
+        beaconKey: this.config.beaconKey,
+        helpTopicIndex: this.getHelpTopicIndex(),
+        getHelpTopicId: slug => (this._helpTopics[slug] && this._helpTopics[slug].id)
+      }
     })
 
     application.once('startup', async () => {
@@ -65,18 +49,21 @@ class HelpTopics extends NxusModule {
       beaconKey: "" }
   }
 
-  /** Gets available help topics.
+  /** Gets an index of available help topics.
    *
    * The returned help topic specifications include these properties:
    * *   `id` - article id
    * *   `slug` - article slug
    * *   `name` - article name
    *
-   * @return {Array} array of help topic specifications
+   * @return {Array} associative array of help topic specifications,
+   *   indexed by Help Topic article slug.
    */
-  async getHelpTopics() {
-    let topics = this._helpTopics.map(topic => pick(topic, ['id', 'slug', 'name']) )
-    return topics
+  getHelpTopicIndex() {
+    let index = {}
+    for (let slug in this._helpTopics)
+      index[slug] = pick(this._helpTopics[slug], ['id', 'slug', 'name'])
+    return index
   }
 
   /** Gets help topic details.
@@ -94,7 +81,7 @@ class HelpTopics extends NxusModule {
    */
   async getHelpTopicDetail(slug) {
     let config = this.config,
-        topic = this._helpTopicIndex[slug],
+        topic = this._helpTopics[slug],
         id = topic && topic.id,
         detail
     if (id) {
@@ -129,9 +116,8 @@ class HelpTopics extends NxusModule {
       let response = await request(options),
           items = response.articles && response.articles.items
       if (items) {
-        this._helpTopics = items
-        for (let topic of this._helpTopics)
-          this._helpTopicIndex[topic.slug] = topic
+        for (let topic of items)
+          this._helpTopics[topic.slug] = topic
       }
     }
     catch (e) {
