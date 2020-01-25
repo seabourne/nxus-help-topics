@@ -1,6 +1,6 @@
 'use strict'
 
-/* globals Beacon: false */
+/* globals Beacon: false, helpTopicIndex: false */
 
 import {LitElement, html, css} from 'lit-element'
 
@@ -59,7 +59,7 @@ class HelpTopicTrigger extends LitElement {
       HelpTopicTrigger._initialized = true
     }
     if (!this._initialized) {
-      this.addEventListener('click', this._boundClickListener)
+      this._configureTrigger()
       this._initialized = true
     }
   }
@@ -67,11 +67,29 @@ class HelpTopicTrigger extends LitElement {
   disconnectedCallback() {
     super.disconnectedCallback()
     if (this._initialized) {
-      this.removeEventListener('click', this._boundClickListener)
+      if (this._enabled) this.removeEventListener('click', this._boundClickListener)
       this._initialized = false
     }
   }
 
+  _configureTrigger() {
+    // this is what we get for relying on a window property to configure
+    // the trigger element – we may have to delay configuration until
+    // the window finishes loading.
+    if (document.readyState !== 'complete') {
+      window.addEventListener('load', ::this._configureTrigger, {once: true})
+      return
+    }
+    let enabled = true
+    if (this.topic) {
+      let info = (window.helpTopicIndex || {})[this.topic]
+      this._id = info && info.id
+      enabled = !!info
+    }
+    this._enabled = enabled
+    this.classList.toggle('enabled', enabled)
+    if (enabled) this.addEventListener('click', this._boundClickListener)
+  }
 
   _clickListener(e) {
     e.stopPropagation()
@@ -83,8 +101,8 @@ class HelpTopicTrigger extends LitElement {
   }
 
   openBeacon() {
-    if (this.topic)
-      Beacon('article', this.topic)
+    if (this._id)
+      Beacon('article', this._id)
     else
       Beacon('open')
     Beacon('once', 'close', () => { this.opened = false })
@@ -107,13 +125,16 @@ class HelpTopicTrigger extends LitElement {
         --help-topic-trigger-font: var(--help-topic-trigger-font-size)/var(--help-topic-trigger-line-height) var(--help-topic-trigger-font-family);
         --help-topic-trigger-color: inherit;
         --help-topic-trigger-color-open: red;
-        display: inline;
+        display: none;
         cursor: pointer;
         font: var(--help-topic-trigger-font);
-        color: var(help-topic-trigger-color);
+        color: var(--help-topic-trigger-color);
       }
       :host(.open) {
         color: var(--help-topic-trigger-color-open);
+      }
+      :host(.enabled) {
+        display: inline;
       }
     `
   }

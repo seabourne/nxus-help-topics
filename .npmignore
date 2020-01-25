@@ -8,5 +8,6 @@ documentation.yml
 introduction.md
 jest.config.js
 src
-test
 *.tgz
+*.sh
+.DS_Store
