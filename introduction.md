@@ -67,7 +67,7 @@ The Help Scout Beacon Builder provides embed code that does this.
 Alternatively, the Help Topics module defines a `help-topics` partial
 through `nxus-templater` that you can render to provide the embed code.
 
-See [Use with EJS and Nxus Templater](#use-with-ejs-and-nxus-templater)
+See [Defining the Help Topics context](#defining-the-help-topics-context)
 for details.
 
 
@@ -131,7 +131,11 @@ follows:
 
     <script src="/node_modules/nxus-help-topics/components/help-topic-trigger.js"></script>
 
-### Defining the Help Topics context
+Alternatively, you can use the `clientjs` `includeScript()` method:
+
+    clientjs.includeScript('default', process.cwd()+"/node_modules/nxus-help-topics/components/help-topic-trigger.js")
+
+## Defining the Help Topics context
 
 There is a `help-topics` partial you can render to define the Help
 Topics context for a page. It will also provided the embed code for the

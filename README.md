@@ -38,32 +38,68 @@ human-readable, so they give an indication of the topic. Also, you can
 create slugs for help topics that aren't yet defined. However, the Help
 Scout Beacon and Document APIs require article identifiers for
 retrieving help topics, so there's an extra mapping step required to
-retrieve an article using its slug.
+retrieve an article using its slug. The Nxus Help Topics module handles
+this mapping from slug to identifier, so you don't have to.
+
+## Configuration parameters
+
+The Help Topics module accepts these configuration parameters:
+
+-   `apiKey` - The Help Scout Docs API key used for authentication
+    (see the Help Scout documentation for the
+    [Docs API Key](https://developer.helpscout.com/docs-api/#your-api-key)).
+-   `collectionId` - The id of the collection containing the help
+    topic articles. It looks like the easiest place to find the
+    collection id is in the URL for the Help Scout document library
+    landing page (for example,
+    `https://secure.helpscout.net/docs/5d8a195e2c7d3a7e9ae18b54/`).
+-   `beaconKey` - The Help Scout Beacon key. (You can find it in the
+    embed code provided by the Help Scout Beacon Builder; it's the
+    second parameter in the `Beacon('init', key)` call.) Define this
+    parameter if you're using the `help-topics` partial to define the
+    Beacon embed code and Help Topics context.
+-   `listURL` - the Docs API List Articles endpoint and parameters
+    (default `https://docsapi.helpscout.net/v1/collections/:id/articles?status=published&pageSize=100`)
+-   `getURL` - the Docs API Get Article endpoint and parameters
+    (default `https://docsapi.helpscout.net/v1/articles/:id`)
 
 ## Embedding the Help Scout Beacon on web pages
 
-The Help Scout Beacon Builder provides embed code that defines the
-`Beacon` object in the context of a web page.
+Displaying help topics in the Help Scout Beacon requires the Help Scout
+`Beacon` object to defined in the web page context.
 
-Alternatively, the Help Topics module defines a `helpscout` partial that
-you can render to provide the embed code. Place it at the end of the
-contents of the page `<body>...</body>` element. You'll need to define
-the `beaconKey` configuration parameter to use this.
+The Help Scout Beacon Builder provides embed code that does this.
 
-    <%- render('helpscout') %>
+Alternatively, the Help Topics module defines a `help-topics` partial
+through `nxus-templater` that you can render to provide the embed code.
+
+See [Defining the Help Topics context](#defining-the-help-topics-context)
+for details.
 
 ## The \\&lt;help-topic-trigger> element
 
 The `<help-topic-trigger>` element renders an interactive marker that,
-when clicked, displays the Help Scout Beacon. The element content
-provides the marker. The `topic` property may be used to specify the
-help topic to display in the beacon; if no topic is specified, the
-beacon is opened to the general help interface.
+when clicked, displays the Help Scout Beacon. Use the `topic` property
+to specify the help topic to display in the beacon; if no topic is
+specified, the beacon is opened to the general help interface. If
+there is no article corresponding to the help topic you specify, the
+trigger element is hidden (so you can add trigger elements to a page
+speculatively, and define help topic articles as you see fit).
+
+By default, the trigger element displays a FontAwesome `info-circle`
+icon as the clickable element. You can specify an alternate display as
+the content of the `<help-topic-trigger>` element.
+
+The `<help-topic-trigger>` element requires the Help Topics context to
+be defined for the page. (The context provides the mapping from article
+slugs to identifiers, and lets the trigger determine which help topics
+have articles defined.) There's a `help-topics` partial you can use to
+set up the context (see [Defining the Help Topics context](#defining-the-help-topics-context) below).
 
 ### Properties
 
 -   **`topic`**`: string`
-    Article identifier for the help topic to display.
+    Article slug for the help topic to display.
 
 -   **`opened`**`: boolean`
     The opened/closed state of the trigger. If true, the trigger has the
@@ -71,29 +107,28 @@ beacon is opened to the general help interface.
     (it may be closed, or open from some other cause). Setting the
     property programmatically will open or close the beacon.
 
+### Styling
+
+You can override these CSS variables to adjust the styling of the
+trigger element:
+
+-   `--help-topic-trigger-font-family` (default `'FontAwesome'`)
+-   `--help-topic-trigger-font-size` (default `75%`)
+-   `--help-topic-trigger-line-height` (default `1`)
+-   `--help-topic-trigger-font` (default uses `--help-topic-trigger-font-size`,
+    `--help-topic-trigger-line-height`, and `--help-topic-trigger-font-family` settings)
+-   `--help-topic-trigger-color` (default `inherit`)
+-   `--help-topic-trigger-color-open` (default `red`)
+
 ### Example
 
-Here's a simple example showing a Font Awesome info-circle icon as the
-trigger marker and a help topic with article id `5dc5aa4d2c7d3a7e9ae3b621`.
+Here's a simple example showing a help topic with article slug
+`my-help-topic`. It replaces the default clickable element with a Font
+Awesome `question-circle` glyph.
 
-    <help-topic-trigger topic="5dc5aa4d2c7d3a7e9ae3b621">
-      <i class="fa fa-info-circle"></i>
+    <help-topic-trigger topic="my-help-topic">
+      <i class="far fa-question-circle"></i>
     </help-topic-trigger>
-
-### Mapping article slugs to ids
-
-Typically, help topics are indicated by article slugs, and the topic
-index returned by the `HelpTopics` `getHelpTopics()` method is used to
-map slugs to ids.
-
-This code fragment gives the general idea.
-
-    let topics = await helpTopics.getHelpTopics()
-
-    function getHelpTopicId(slug) {
-      let topic = topics.find(topic => (topic.slug == slug))
-      return topic && topic.id
-    }
 
 ### Defining the element
 
@@ -101,6 +136,39 @@ The `<help-topic-trigger>` element can be defined in page setup as
 follows:
 
     <script src="/node_modules/nxus-help-topics/components/help-topic-trigger.js"></script>
+
+Alternatively, you can use the `clientjs` `includeScript()` method:
+
+    clientjs.includeScript('default', process.cwd()+"/node_modules/nxus-help-topics/components/help-topic-trigger.js")
+
+## Defining the Help Topics context
+
+There is a `help-topics` partial you can render to define the Help
+Topics context for a page. It will also provided the embed code for the
+Help Scout Beacon if it's not already defined. (Make sure you specify
+the Help Topics `beaconKey` configuration parameter if you're relying
+on the partial to provide the embed code.)
+
+Place `help-topics` partial at the end of the contents of the page
+`<body>...</body>` element.
+
+    <%- render('help-topics') %>
+
+By default, it sets the beacon display style to `manual`, so no beacon
+button will be displayed on the page. You can override this and other
+configuration settings by passing a `beaconConfig` object in the
+`render()` context. See the [HelpScout Beacon JavaScript API](https://developer.helpscout.com/beacon-2/web/javascript-api/)
+for more information on configuration options.
+
+## Use with EJS and Nxus Templater
+
+The Help Topics module adds these properties to the templater rendering
+context:
+
+-   `beaconKey` - The Help Scout Beacon key, copied from the Help Topics
+    configuration parameter.
+-   `helpTopicIndex` - An associative array that maps help topic article
+    slugs to article information (`id`, `slug` and `name`).
 
 ## Possible issues, loose ends
 
@@ -124,30 +192,11 @@ extensive transformations if the need for them became apparent.
 **Extends NxusModule**
 
 Help Topics (interface to Help Scout).
+See the introduction for a list of configuration parameters.
 
-It accepts these configuration parameters:
+### getHelpTopicIndex
 
--   `apiKey` - The Help Scout Docs API key used for authentication
-    (see the Help Scout documentation for the
-    [Docs API Key](https://developer.helpscout.com/docs-api/#your-api-key)).
--   `collectionId` - The id of the collection containing the help
-    topic articles. It looks like the easiest place to find the
-    collection id is in the URL for the Help Scout document library
-    landing page (for example,
-    `https://secure.helpscout.net/docs/5d8a195e2c7d3a7e9ae18b54/`).
--   `beaconKey` - The Help Scout Beacon key. (You can find it in the
-    embed code provided by the Help Scout Beacon Builder; it's the
-    second parameter in the `Beacon('init', key)` call.) Define this
-    parameter if you're using the `helpscout` partial to define the
-    Beacon embed code.
--   `listURL` - the Docs API List Articles endpoint and parameters
-    (default `https://docsapi.helpscout.net/v1/collections/:id/articles?status=published&pageSize=100`)
--   `getURL` - the Docs API Get Article endpoint and parameters
-    (default `https://docsapi.helpscout.net/v1/articles/:id`)
-
-### getHelpTopics
-
-Gets available help topics.
+Gets an index of available help topics.
 
 The returned help topic specifications include these properties:
 
@@ -155,7 +204,8 @@ The returned help topic specifications include these properties:
 -   `slug` - article slug
 -   `name` - article name
 
-Returns **[Array](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array)** array of help topic specifications
+Returns **[Array](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array)** associative array of help topic specifications,
+  indexed by Help Topic article slug.
 
 ### getHelpTopicDetail
 
