@@ -56,7 +56,7 @@ class HelpTopics extends NxusModule {
    * *   `slug` - article slug
    * *   `name` - article name
    *
-   * @return {Array} associative array of help topic specifications,
+   * @return {Object} associative array of help topic specifications,
    *   indexed by Help Topic article slug.
    */
   getHelpTopicIndex() {
