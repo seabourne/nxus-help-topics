@@ -1,6 +1,7 @@
 'use strict'
 
-/* globals Beacon: false, helpTopicIndex: false */
+/* globals Beacon: false */
+/* eslint new-cap: ["warn", { "capIsNewExceptions": ["Beacon"] }] */
 
 import {LitElement, html, css} from 'lit-element'
 
