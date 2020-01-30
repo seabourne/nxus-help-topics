@@ -81,15 +81,24 @@ class HelpTopicTrigger extends LitElement {
       window.addEventListener('load', ::this._configureTrigger, {once: true})
       return
     }
-    let enabled = true
+    let enabled = true, info
     if (this.topic) {
-      let info = (window.helpTopicIndex || {})[this.topic]
+      info = (window.helpTopicIndex || {})[this.topic]
       this._id = info && info.id
       enabled = !!info
     }
     this._enabled = enabled
     this.classList.toggle('enabled', enabled)
-    if (enabled) this.addEventListener('click', this._boundClickListener)
+    if (enabled) {
+      this.addEventListener('click', this._boundClickListener)
+      if (info && info.name) {
+        let title = this.getAttribute('title')
+        if (!title) {
+          title = `Help Topic - ${info.name}`
+          this.setAttribute('title', title)
+        }
+      }
+    }
   }
 
   _clickListener(e) {
