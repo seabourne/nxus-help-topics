@@ -204,7 +204,7 @@ The returned help topic specifications include these properties:
 -   `slug` - article slug
 -   `name` - article name
 
-Returns **[Array](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array)** associative array of help topic specifications,
+Returns **[Object](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object)** associative array of help topic specifications,
   indexed by Help Topic article slug.
 
 ### getHelpTopicDetail

@@ -24,25 +24,30 @@ const collectionsURLPattern = new URLPattern('/v1/collections/:id/articles')
 const articlesURLPattern = new URLPattern('/v1/articles/:id')
 const detailProperties = ['text', 'categories', 'related', 'keywords']
 
-const requestMock = async (options) => {
-  let url = new URL(options.uri || ''), response, match
+const fetchMock = async (str) => {
+  let url = new URL(str.toString()), body, match
   if ((url.protocol != 'http:') && (url.protocol != 'https:'))
     throw new Error(`Error: Invalid protocol: ${url.protocol}`)
   if (url.host != helpScoutHost)
     throw new Error(`Error: getaddrinfo ENOTFOUND ${url.host}`)
   match = collectionsURLPattern.match(url.pathname)
   if (match) {
-    let items = Object.values(helpScoutArticles).map(article => omit(article, detailProperties))
-    response = {articles: {page: 1, pages: 1, count: items.length, items}}
+    let items = Object.values(helpScoutArticles).map(article => omit(article, detailProperties)),
+        pageSize = parseInt(url.searchParams.get('pageSize') || '50'),
+        page = parseInt(url.searchParams.get('page') || '1'),
+        pages = Math.ceil(items.length / pageSize),
+        offset = (page - 1) * pageSize
+    items = items.slice(offset, offset + pageSize)
+    body = {articles: {page, pages, count: items.length, items}}
   }
   else {
     match = articlesURLPattern.match(url.pathname)
     if (match) {
       let article = helpScoutArticles[match.id]
       if (article)
-        response = {article}
+        body = {article}
       else
-        response = {code: 404, error: 'Resource not found'}
+        body = {code: 404, error: 'Resource not found'}
     }
     else {
       let code = 404,
@@ -53,18 +58,23 @@ const requestMock = async (options) => {
       throw error
     }
   }
+  let response = {
+        body,
+        json: async function() { return this.body } }
   return response
 }
 
-jest.mock('request')
-import request from 'request'
+jest.mock('node-fetch')
+import fetch from 'node-fetch'
 
 
 beforeAll(() => {
-  request.mockImplementation(requestMock)
+  fetch.mockImplementation(fetchMock)
   application.config.help_topics = {
     collectionId: "5d8a195e2c7d3a7e9ae18b54",
-    apiKey: "97edea83c395d24a7546ae8ce52cc55b7b87ff94" }
+    apiKey: "97edea83c395d24a7546ae8ce52cc55b7b87ff94",
+    listURL: "https://docsapi.helpscout.net/v1/collections/:id/articles?status=published&pageSize=2" }
+      // pageSize 2 forces initialization code to do multiple fetches 
 })
 
 describe("HelpTopics", () => {

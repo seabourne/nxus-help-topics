@@ -3,16 +3,16 @@
 import {URL} from 'url'
 
 import {pick} from 'lodash'
-import request from 'request-promise-native'
+import fetch from 'node-fetch'
 
 import {application, NxusModule} from 'nxus-core'
 import {templater} from 'nxus-templater'
 
-function splitURL(str) {
-  let url = new URL(str),
-      params = {}
-  url.searchParams.forEach((value, name) => { params[name] = value })
-  return [url.origin + url.pathname, params]
+function mergeURL(str, options) {
+  let url = new URL(str)
+  url.username = options.apiKey
+  url.password = 'x'
+  return url
 }
 
 
@@ -30,7 +30,7 @@ class HelpTopics extends NxusModule {
     templater.on('renderContext', (opts) => {
       return {
         beaconKey: this.config.beaconKey,
-        helpTopicIndex: this.getHelpTopicIndex(),
+        helpTopicIndex: this.getHelpTopicIndex({status: 'published'}),
         getHelpTopicId: slug => (this._helpTopics[slug] && this._helpTopics[slug].id)
       }
     })
@@ -56,13 +56,20 @@ class HelpTopics extends NxusModule {
    * *   `slug` - article slug
    * *   `name` - article name
    *
+   * @param {Object} options - index options:
+   * *   `status` - selects help topics with specific status
+   *     (`published`, `notpublished` or `all`); default is `published`
    * @return {Object} associative array of help topic specifications,
    *   indexed by Help Topic article slug.
    */
-  getHelpTopicIndex() {
-    let index = {}
-    for (let slug in this._helpTopics)
-      index[slug] = pick(this._helpTopics[slug], ['id', 'slug', 'name'])
+  getHelpTopicIndex(options = {}) {
+    let status = options.status || 'published',
+        index = {}
+    for (let slug in this._helpTopics) {
+      let topic = this._helpTopics[slug]
+      if ((status != 'all') && (topic.status !== status)) continue
+      index[slug] = pick(topic, ['id', 'slug', 'name'])
+    }
     return index
   }
 
@@ -80,21 +87,16 @@ class HelpTopics extends NxusModule {
    * @return {Object} help topic details
    */
   async getHelpTopicDetail(slug) {
-    let config = this.config,
-        topic = this._helpTopics[slug],
+    let topic = this._helpTopics[slug],
         id = topic && topic.id,
         detail
     if (id) {
-      let [uri, params] = splitURL(config.getURL),
-          options = {
-            uri: uri.replace(/\/:id/, `/${id}`),
-            params,
-            auth: { username: config.apiKey, password: 'x' },
-            json: true // Automatically parses the JSON string in the response
-          }
+      let url = mergeURL(this.config.getURL, this.config)
+      url.pathname = url.pathname.replace(/\/:id/, `/${id}`)
       try {
-        let response = await request(options)
-        detail = response.article
+        let response = await fetch(url),
+            body = await response.json()
+        detail = body.article
       }
       catch (e) {
         this.log.error('getHelpTopicDetail', e)
@@ -104,20 +106,20 @@ class HelpTopics extends NxusModule {
   }
 
   async _initializeHelpTopics() {
-    let config = this.config,
-        [uri, params] = splitURL(config.listURL),
-        options = {
-          uri: uri.replace(/\/:id/, `/${config.collectionId}`),
-          params,
-          auth: { username: config.apiKey, password: 'x' },
-          json: true // Automatically parses the JSON string in the response
-        }
+    let url = mergeURL(this.config.listURL, this.config)
+    url.pathname = url.pathname.replace(/\/:id/, `/${this.config.collectionId}`)
     try {
-      let response = await request(options),
-          items = response.articles && response.articles.items
-      if (items) {
-        for (let topic of items)
-          this._helpTopics[topic.slug] = topic
+      for (let page = 1; ; page += 1) {
+        url.searchParams.set('page', page.toString())
+        let response = await fetch(url),
+            body = await response.json(),
+            items = body.articles && body.articles.items,
+            pages = (body.articles && body.articles.pages) || 0
+        if (items) {
+          for (let topic of items)
+            this._helpTopics[topic.slug] = topic
+        }
+        if (page >= pages) break
       }
     }
     catch (e) {
