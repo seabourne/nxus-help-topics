@@ -1,6 +1,6 @@
 {
   "name": "nxus-help-topics",
-  "version": "4.0.1",
+  "version": "4.1.0",
   "description": "Help topics (interface to Help Scout) for nxus apps",
   "main": "lib",
   "scripts": {
