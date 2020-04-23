@@ -204,6 +204,11 @@ The returned help topic specifications include these properties:
 -   `slug` - article slug
 -   `name` - article name
 
+**Parameters**
+
+-   `options` **[Object](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object)** index options:-   `status` - selects help topics with specific status
+        (`published`, `notpublished` or `all`); default is `published` (optional, default `{}`)
+
 Returns **[Object](https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Object)** associative array of help topic specifications,
   indexed by Help Topic article slug.
 

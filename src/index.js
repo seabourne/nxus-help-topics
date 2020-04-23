@@ -42,7 +42,7 @@ class HelpTopics extends NxusModule {
 
   _defaultConfig() {
     return {
-      listURL: "https://docsapi.helpscout.net/v1/collections/:id/articles?status=published&pageSize=100",
+      listURL: "https://docsapi.helpscout.net/v1/collections/:id/articles?pageSize=100",
       getURL: "https://docsapi.helpscout.net/v1/articles/:id",
       collectionId: "",
       apiKey: "",
