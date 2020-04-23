@@ -19,6 +19,17 @@ import HelpTopics, {helpTopics} from '../index.js'
 import helpScoutArticles from './data/helpScoutArticles.js'
 
 
+function filterArticles(options) {
+  let status = (options && options.status) || 'all', articles = []
+  for (let id in helpScoutArticles) {
+    let article = helpScoutArticles[id]
+    if ((status === 'all') || (status === article.status))
+      articles.push(article)
+  }
+  return articles
+}
+
+
 const helpScoutHost = 'docsapi.helpscout.net'
 const collectionsURLPattern = new URLPattern('/v1/collections/:id/articles')
 const articlesURLPattern = new URLPattern('/v1/articles/:id')
@@ -74,7 +85,7 @@ beforeAll(() => {
     collectionId: "5d8a195e2c7d3a7e9ae18b54",
     apiKey: "97edea83c395d24a7546ae8ce52cc55b7b87ff94",
     listURL: "https://docsapi.helpscout.net/v1/collections/:id/articles?status=published&pageSize=2" }
-      // pageSize 2 forces initialization code to do multiple fetches 
+      // pageSize 2 forces initialization code to do multiple fetches
 })
 
 describe("HelpTopics", () => {
@@ -87,9 +98,9 @@ describe("HelpTopics", () => {
     })
 
     it("should be instantiated", () => {
-      help = new HelpTopics();
-      expect(help).not.toBeNull();
-    });
+      help = new HelpTopics()
+      expect(help).not.toBeNull()
+    })
 
     it("should have help topics after application 'init', 'load' and 'startup'", async () => {
       const desiredTopic = {
@@ -99,7 +110,7 @@ describe("HelpTopics", () => {
       await application.emit('init')
       await application.emit('load')
       await application.emit('startup')
-      index = await help.getHelpTopicIndex()
+      index = await help.getHelpTopicIndex({status: 'all'})
       expect(index).toBeInstanceOf(Object)
       expect(Object.keys(index).length).toEqual(Object.keys(helpScoutArticles).length)
       for (let slug in index) {
@@ -120,6 +131,23 @@ describe("HelpTopics", () => {
         expect(detail).toMatchObject(desiredDetail)
         expect(detail.slug).toMatch(slug)
       }
+    }, 60000)
+
+    it("should filter indexing for published articles", async () => {
+      let articles = filterArticles({status: 'published'})
+      index = await help.getHelpTopicIndex()
+      expect(index).toBeInstanceOf(Object)
+      expect(Object.keys(index).length).toEqual(articles.length)
+      index = await help.getHelpTopicIndex({status: 'published'})
+      expect(index).toBeInstanceOf(Object)
+      expect(Object.keys(index).length).toEqual(articles.length)
+    }, 60000)
+
+    it("should filter indexing for notpublished articles", async () => {
+      let articles = filterArticles({status: 'notpublished'})
+      index = await help.getHelpTopicIndex({status: 'notpublished'})
+      expect(index).toBeInstanceOf(Object)
+      expect(Object.keys(index).length).toEqual(articles.length)
     }, 60000)
 
   })
