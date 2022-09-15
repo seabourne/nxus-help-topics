@@ -31,7 +31,7 @@
     "babel-core": "^6.26.3",
     "babel-plugin-transform-function-bind": "^6.22.0",
     "babel-preset-env": "^1.6.1",
-    "documentation": "^4.0.0-beta",
+    "documentation": "^14.0.0",
     "lit-element": "^2.2.1",
     "nxus-core": "^4.1.4-1",
     "nxus-templater": "^4.1.0",
